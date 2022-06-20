@@ -3,6 +3,7 @@ package io.javabrains.moviecatalogservice.resources;
 import io.javabrains.moviecatalogservice.models.CatalogItem;
 import io.javabrains.moviecatalogservice.models.Movie;
 import io.javabrains.moviecatalogservice.models.Rating;
+import io.javabrains.moviecatalogservice.models.UserRating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,17 +27,22 @@ public class MovieCatalogResource {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
+    //        List<Rating> ratings = Arrays.asList(
+//                new Rating("1234", 4),
+//                new Rating("5678", 3)
+//        );
     @RequestMapping("/{userId}")
+    // technically, getCatalog() method below must return an object not a List<CatalogItem>!
     public List<CatalogItem> getCatalog(@PathVariable ("userId") String userId) {
 
-        List<Rating> ratings = Arrays.asList(
-                new Rating("1234", 4),
-                new Rating("5678", 3)
-        );
+        // getting List<Rating> and wrapping it using UserRating wrapper
+        UserRating ratings = restTemplate.getForObject("http://localhost:8083/ratingsdata/users/" + userId, UserRating.class);
 
-        return ratings.stream().map(rating -> {
+        return ratings.getUserRating().stream().map(rating -> {
+            // ========== RESTTEMPLATE ==========
 //            Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
 
+            // ========== WEBCLIENT =============
             Movie movie = webClientBuilder.build()
                     .get() // since the API endpoint we are targetting is a GET request
                     .uri("http://localhost:8082/movies/" + rating.getMovieId()) // where we need the request to be made
