@@ -36,7 +36,7 @@ public class MovieCatalogResource {
     public List<CatalogItem> getCatalog(@PathVariable ("userId") String userId) {
 
         // getting List<Rating> and wrapping it using UserRating wrapper
-        UserRating ratings = restTemplate.getForObject("http://localhost:8083/ratingsdata/users/" + userId, UserRating.class);
+        UserRating ratings = restTemplate.getForObject("http://ratings-data-service/ratingsdata/users/" + userId, UserRating.class);
 
         return ratings.getUserRating().stream().map(rating -> {
             // ========== RESTTEMPLATE ==========
@@ -45,7 +45,7 @@ public class MovieCatalogResource {
             // ========== WEBCLIENT =============
             Movie movie = webClientBuilder.build()
                     .get() // since the API endpoint we are targetting is a GET request
-                    .uri("http://localhost:8082/movies/" + rating.getMovieId()) // where we need the request to be made
+                    .uri("http://movie-info-service/movies/" + rating.getMovieId()) // where we need the request to be made
                     .retrieve()
                     .bodyToMono(Movie.class) // whatever we get back, convert it to instance of Movie class
                     .block(); // we have to wait around for this mono return Movie object back since we return a List<CatalogItem>
